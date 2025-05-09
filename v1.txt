@@ -1,0 +1,135 @@
+<template>
+  <div class="chat-container">
+    <h1 class="chat-title">Chatbot</h1>
+    <div class="chat-answer">
+      <div v-for="(message, index) in messages" :key="index" class="message-item">
+        <div v-if="message.role === 'User'" class="user-message">
+          <span class="message-role">{{ message.role }}:</span>
+          <span class="message-content">{{ message.content }}</span>
+        </div>
+        <div v-else class="assistant-message">
+          <span class="message-role">{{ message.role }}:</span>
+          <div class="structured-answer" v-html="formatAnswer(message.content)"></div>
+        </div>
+      </div>
+      <img v-if="graphImage" :src="'data:image/png;base64,' + graphImage" alt="Iteration Graph" class="graph-image" />
+    </div>
+    <div class="chat-input-area">
+      <input v-model="userInput" placeholder="Enter your message" class="chat-input" />
+      <button @click="sendMessage" class="chat-send-btn">Send</button>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref } from 'vue';
+
+const userInput = ref('');
+const messages = ref([]);
+const graphImage = ref(null);
+
+const formatAnswer = (answer) => {
+  // 简单示例：将回答中的换行符转换为HTML换行标签
+  return answer.replace(/\n/g, '<br>');
+  // 还可以添加更多逻辑，如识别列表、标题等进行相应的HTML格式化
+};
+
+const sendMessage = async () => {
+  if (userInput.value.trim() === '') return;
+  try {
+    console.log('Sending request to backend...');
+    const response = await fetch('http://localhost:8080/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: `user_input=${encodeURIComponent(userInput.value)}`
+    });
+    console.log('Received response from backend.');
+    const data = await response.json();
+    console.log('Parsed JSON data from response:', data);
+    const newMessages = data.messages.map((msg) => ({ role: 'Assistant', content: msg }));
+    newMessages.unshift({ role: 'User', content: userInput.value });
+    messages.value = newMessages;
+    graphImage.value = data.graph_image;
+    console.log('Graph image data:', graphImage.value);
+  } catch (error) {
+    console.error('Error:', error);
+  }
+  userInput.value = '';
+};
+</script>
+
+<style scoped>
+.chat-container {
+  max-width: 600px;
+  margin: 50px auto;
+  padding: 20px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.chat-title {
+  font-size: 24px;
+  color: #333;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.chat-answer {
+  margin-bottom: 20px;
+}
+
+.message-item {
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 6px;
+}
+
+.message-role {
+  font-weight: bold;
+  color: #666;
+  margin-right: 5px;
+}
+.assistant-message {
+  background-color: #f0fff0;
+}
+
+.structured-answer {
+  text-align: left;
+}
+
+.graph-image {
+  margin-top: 10px;
+  max-width: 100%;
+  height: auto;
+}
+
+.chat-input-area {
+  display: flex;
+  align-items: center;
+}
+
+.chat-input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin-right: 10px;
+}
+
+.chat-send-btn {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.chat-send-btn:hover {
+  background-color: #0056b3;
+}
+</style>
