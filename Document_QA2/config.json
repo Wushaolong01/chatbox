@@ -1,0 +1,121 @@
+{
+  "models": {
+    "default": {
+      "prompt_template": "基于以下上下文信息，用中文专业、简洁地回答用户问题。\n上下文：{context}\n问题：{question}\n答案：",
+      "temperature": 0.7,
+      "max_tokens": 2000
+    },
+    "detailed": {
+      "prompt_template": "请详细分析以下文档内容，用中文给出全面解释。\n上下文：{context}\n问题：{question}\n详细回答：",
+      "temperature": 0.5,
+      "max_tokens": 4000
+    }
+  },
+
+  "embedding": {
+    "name": "BAAI/bge-small-zh-v1.5",
+    "cache_dir": "./models/embeddings",
+    "quantization": "int8",
+    "batch_size": 32
+  },
+
+  "llm": {
+    "name": "qwen:14b-chat",
+    "base_url": "http://localhost:11434",
+    "temperature": 0.7,
+    "num_ctx": 4096,
+    "num_gpu": 1,
+    "timeout": 300
+  },
+
+  "streaming": {
+    "enabled": true,
+    "chunk_size_mb": 100,
+    "overlap_bytes": 512,
+    "mmap_threshold_mb": 200,
+    "buffer_size": 1048576
+  },
+
+  "numa": {
+    "enabled": true,
+    "node": 0,
+    "interleave": false,
+    "alloc_policy": "local"
+  },
+
+  "ocr": {
+    "languages": ["chi_sim", "eng"],
+    "oem": 3,
+    "psm": 6,
+    "dpi": 300,
+    "preprocess": {
+      "denoise": true,
+      "deskew": true,
+      "contrast": 1.2
+    }
+  },
+
+  "text_processing": {
+    "chunk_size": 800,
+    "chunk_overlap": 150,
+    "separators": ["\n\n# ", "\n## ", "\n### ", "\n\n", "\n"],
+    "max_metadata_size": 512
+  },
+
+  "vector_store": {
+    "type": "chroma",
+    "persist_dir": "./chroma_db",
+    "hnsw": {
+      "space": "cosine",
+      "ef_construction": 200,
+      "M": 16
+    },
+    "optimization": {
+      "quantization": "binary",
+      "compression": "zstd"
+    }
+  },
+
+  "performance": {
+    "max_workers": 4,
+    "thread_per_worker": 2,
+    "prefetch_factor": 2,
+    "gpu_utilization": 0.8
+  },
+
+  "memory": {
+    "mmap": true,
+    "swap_threshold": 0.8,
+    "cache": {
+      "enabled": true,
+      "max_size_mb": 2048,
+      "ttl_seconds": 3600
+    }
+  },
+
+  "logging": {
+    "level": "INFO",
+    "max_size_mb": 100,
+    "backup_count": 3,
+    "audit": true
+  },
+
+  "security": {
+    "max_file_size_mb": 1024,
+    "allowed_mime_types": [
+      "application/pdf",
+      "text/plain",
+      "image/png",
+      "image/jpeg",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    ],
+    "sanitization": {
+      "enabled": true,
+      "max_depth": 5
+    },
+    "auth": {
+      "enabled": false,
+      "jwt_secret": "your-secret-key"
+    }
+  }
+}
